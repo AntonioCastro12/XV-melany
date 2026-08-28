@@ -214,7 +214,6 @@ export default function Home() {
     const family = formatFamilyName(inviteForm.name);
     const seats = Math.max(1, Number.parseInt(inviteForm.seats, 10) || 1);
     const table = Math.max(1, Number.parseInt(inviteForm.table, 10) || 1);
-    if (!normalizeWhatsAppNumber(inviteForm.phone)) return;
     const url = new URL(window.location.origin + window.location.pathname);
     if (family) url.searchParams.set('familia', family);
     url.searchParams.set('lugares', String(seats));
@@ -227,6 +226,25 @@ export default function Home() {
     if (!generatedLink) return;
     await navigator.clipboard.writeText(generatedLink);
     setCopied(true);
+  }
+
+  async function shareGeneratedLink() {
+    if (!generatedLink) return;
+    const family = formatFamilyName(inviteForm.name);
+    const shareData = {
+      title: 'XV Años de Melany Deniss',
+      text: family ? `Invitación para ${family}` : 'Te invitamos a los XV años de Melany Deniss',
+      url: generatedLink,
+    };
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+      }
+    }
+    await copyGeneratedLink();
   }
 
   function sendPersonalizedInvitation() {
@@ -414,13 +432,12 @@ export default function Home() {
                 />
               </label>
               <label>
-                Número de teléfono / WhatsApp
+                Número de teléfono / WhatsApp (opcional)
                 <input
                   type="tel"
                   value={inviteForm.phone}
                   onChange={(event) => setInviteForm({ ...inviteForm, phone: event.target.value })}
-                  placeholder="10 dígitos o con código de país"
-                  required
+                  placeholder="Vacío si enviarás por Messenger"
                 />
               </label>
               <button className="primary-button primary-button--wine" type="submit">Crear pase personalizado</button>
@@ -435,7 +452,10 @@ export default function Home() {
                 <p>{generatedLink}</p>
                 <div className="generated-invite__actions">
                   <button className="outline-button" type="button" onClick={copyGeneratedLink}>{copied ? 'Enlace copiado' : 'Copiar enlace'}</button>
-                  <a className="primary-button primary-button--wine" href={sendPersonalizedInvitation()} target="_blank" rel="noreferrer">Enviar por WhatsApp ↗</a>
+                  <button className="outline-button" type="button" onClick={shareGeneratedLink}>Compartir / Messenger ↗</button>
+                  {normalizeWhatsAppNumber(inviteForm.phone) && (
+                    <a className="primary-button primary-button--wine" href={sendPersonalizedInvitation()} target="_blank" rel="noreferrer">Enviar por WhatsApp ↗</a>
+                  )}
                 </div>
               </div>
             )}
