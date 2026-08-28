@@ -1,6 +1,1 @@
-Fotografías actuales:
-
-melany-original.png — fotografía recibida sin modificar.
-melany-principal-v2.png — fotografía editada e integrada en la invitación.
-
-La galería fue eliminada. Las rutas de portada, retrato y cierre se modifican en app/invitation-data.ts.
+La invitación está diseñada sin fotografías. La portada, la presentación y el cierre utilizan animaciones ornamentales en CSS.

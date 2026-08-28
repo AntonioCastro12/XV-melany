@@ -67,19 +67,6 @@ function SectionHeading({ kicker, title, light = false }: { kicker: string; titl
   );
 }
 
-function Photo({ src, alt, className = '' }: { src: string; alt: string; className?: string }) {
-  const [failed, setFailed] = useState(false);
-  if (failed) {
-    return (
-      <div className={`photo-fallback ${className}`} role="img" aria-label={`${alt}. Fotografía pendiente.`}>
-        <span>MD</span>
-        <small>Melany Deniss</small>
-      </div>
-    );
-  }
-  return <img className={className} src={src} alt={alt} onError={() => setFailed(true)} />;
-}
-
 function LocationCard({
   icon,
   title,
@@ -248,9 +235,9 @@ export default function Home() {
 
       <section
         className={`welcome-screen ${opened ? 'welcome-screen--opened' : ''}`}
-        style={{ '--hero-image': `url("${invitationData.photos.hero}")` } as CSSProperties}
         aria-hidden={opened}
       >
+        <div className="welcome-monogram" aria-hidden="true"><span>XV</span></div>
         <div className="welcome-screen__ornament" aria-hidden="true"><span>✦</span><i /><span>✦</span></div>
         <div className="welcome-screen__content">
           <p className="eyebrow">Mis XV años</p>
@@ -302,9 +289,13 @@ export default function Home() {
 
       <section className="portrait-section section-pad">
         <div className="content-grid content-grid--portrait">
-          <Reveal className="portrait-frame reveal--left">
-            <Photo src={invitationData.photos.featured} alt="Fotografía principal de Melany Deniss" />
-            <span className="portrait-frame__corner" aria-hidden="true">✦</span>
+          <Reveal className="portrait-animation reveal--left">
+            <div className="portrait-animation__orbit" aria-hidden="true">
+              <i /><i /><i /><i />
+              <span>XV</span>
+              <strong>MD</strong>
+            </div>
+            <p>Una noche<br />inolvidable</p>
           </Reveal>
           <Reveal className="portrait-copy reveal--right" delay={120}>
             <p className="eyebrow">Una nueva etapa</p>
@@ -461,9 +452,7 @@ export default function Home() {
       </section>
 
       <section className="final-section section-pad">
-        <div className="final-photo" aria-hidden="true">
-          <Photo src={invitationData.photos.final} alt="Fotografía final de Melany Deniss" />
-        </div>
+        <div className="final-constellation" aria-hidden="true"><i /><i /><i /><i /><i /><i /></div>
         <div className="final-section__overlay" />
         <Reveal className="final-section__content">
           <span className="final-stars" aria-hidden="true">✦ · ✦ · ✦</span>

@@ -47,12 +47,6 @@ export const invitationData = {
     { time: '7:00 PM', title: 'Sonido', icon: '♪' },
     { time: '10:00 PM', title: 'Banda', icon: '♬' },
   ],
-  // Fotografía editada de Melany integrada en portada, retrato y cierre.
-  photos: {
-    hero: '/images/melany-principal-v2.png',
-    featured: '/images/melany-principal-v2.png',
-    final: '/images/melany-principal-v2.png',
-  },
   music: '/music/melany-instrumental.wav', // Puedes sustituir este archivo por otra canción.
   gifts: [
     // Sustituye # por el enlace real de cada opción cuando esté disponible.
