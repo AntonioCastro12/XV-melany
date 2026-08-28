@@ -2,7 +2,7 @@
 
 import {
   type CSSProperties,
-  type MouseEvent,
+  type FormEvent,
   type ReactNode,
   useEffect,
   useRef,
@@ -35,7 +35,7 @@ function whatsappUrl() {
   return `https://wa.me/${number}?text=${message}`;
 }
 
-function Reveal({ children, className = '' }: { children: ReactNode; className?: string }) {
+function Reveal({ children, className = '', delay = 0 }: { children: ReactNode; className?: string; delay?: number }) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -54,7 +54,7 @@ function Reveal({ children, className = '' }: { children: ReactNode; className?:
     return () => observer.disconnect();
   }, []);
 
-  return <div ref={ref} className={`reveal ${className}`}>{children}</div>;
+  return <div ref={ref} className={`reveal ${className}`} style={{ '--reveal-delay': `${delay}ms` } as CSSProperties}>{children}</div>;
 }
 
 function SectionHeading({ kicker, title, light = false }: { kicker: string; title: string; light?: boolean }) {
@@ -142,8 +142,12 @@ export default function Home() {
   const [opened, setOpened] = useState(false);
   const [musicPlaying, setMusicPlaying] = useState(false);
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-  const [activePhoto, setActivePhoto] = useState<number | null>(null);
   const [guest, setGuest] = useState({ name: 'Familia Ejemplo', seats: 4 });
+  const [organizerMode, setOrganizerMode] = useState(false);
+  const [inviteForm, setInviteForm] = useState({ name: '', seats: 2, phone: '' });
+  const [generatedLink, setGeneratedLink] = useState('');
+  const [copied, setCopied] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
   const contentRef = useRef<HTMLElement>(null);
 
@@ -154,6 +158,7 @@ export default function Home() {
       name: params.get('invitado')?.trim() || 'Familia Ejemplo',
       seats: Number.isFinite(parsedSeats) && parsedSeats > 0 ? parsedSeats : 4,
     });
+    setOrganizerMode(params.get('organizador') === '1');
   }, []);
 
   useEffect(() => {
@@ -168,15 +173,14 @@ export default function Home() {
   }, [opened]);
 
   useEffect(() => {
-    if (activePhoto === null) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setActivePhoto(null);
-      if (event.key === 'ArrowRight') setActivePhoto((activePhoto + 1) % invitationData.photos.gallery.length);
-      if (event.key === 'ArrowLeft') setActivePhoto((activePhoto - 1 + invitationData.photos.gallery.length) % invitationData.photos.gallery.length);
+    const updateProgress = () => {
+      const total = document.documentElement.scrollHeight - window.innerHeight;
+      setScrollProgress(total > 0 ? Math.min(100, (window.scrollY / total) * 100) : 0);
     };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [activePhoto]);
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    updateProgress();
+    return () => window.removeEventListener('scroll', updateProgress);
+  }, []);
 
   async function openInvitation() {
     setOpened(true);
@@ -204,13 +208,43 @@ export default function Home() {
     }
   }
 
-  function closePhoto(event: MouseEvent<HTMLDivElement>) {
-    if (event.currentTarget === event.target) setActivePhoto(null);
+  function generateInvitation(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const name = inviteForm.name.trim();
+    if (!name) return;
+    const url = new URL(window.location.origin + window.location.pathname);
+    url.searchParams.set('invitado', name);
+    url.searchParams.set('lugares', String(Math.max(1, inviteForm.seats)));
+    setGeneratedLink(url.toString());
+    setCopied(false);
+  }
+
+  async function copyGeneratedLink() {
+    if (!generatedLink) return;
+    await navigator.clipboard.writeText(generatedLink);
+    setCopied(true);
+  }
+
+  function sendPersonalizedInvitation() {
+    if (!generatedLink) return '#';
+    const phone = inviteForm.phone.replace(/\D/g, '');
+    const seatsLabel = inviteForm.seats === 1 ? '1 lugar' : `${inviteForm.seats} lugares`;
+    const message = encodeURIComponent(
+      `Hola ${inviteForm.name.trim()}, con mucha alegría te invitamos a los XV años de Melany Deniss. Tu pase es para ${seatsLabel}. Abre tu invitación personalizada aquí: ${generatedLink}`,
+    );
+    return `https://wa.me/${phone}?text=${message}`;
   }
 
   return (
     <main className="invitation-shell">
       <audio ref={audioRef} src={invitationData.music} loop preload="none" />
+      <div className="scroll-progress" style={{ width: `${scrollProgress}%` }} aria-hidden="true" />
+
+      {opened && (
+        <div className="ambient-sparkles" aria-hidden="true">
+          {Array.from({ length: 12 }, (_, index) => <span key={index}>✦</span>)}
+        </div>
+      )}
 
       <section
         className={`welcome-screen ${opened ? 'welcome-screen--opened' : ''}`}
@@ -268,11 +302,11 @@ export default function Home() {
 
       <section className="portrait-section section-pad">
         <div className="content-grid content-grid--portrait">
-          <Reveal className="portrait-frame">
+          <Reveal className="portrait-frame reveal--left">
             <Photo src={invitationData.photos.featured} alt="Fotografía principal de Melany Deniss" />
             <span className="portrait-frame__corner" aria-hidden="true">✦</span>
           </Reveal>
-          <Reveal className="portrait-copy">
+          <Reveal className="portrait-copy reveal--right" delay={120}>
             <p className="eyebrow">Una nueva etapa</p>
             <h2>Quince años,<br /><em>un sueño</em></h2>
             <div className="western-rule western-rule--left" aria-hidden="true"><span>✦</span></div>
@@ -285,10 +319,10 @@ export default function Home() {
       <section className="locations-section section-pad">
         <Reveal><SectionHeading kicker="Dónde nos vemos" title="La celebración" /></Reveal>
         <div className="locations-grid">
-          <Reveal>
+          <Reveal className="reveal--left">
             <LocationCard icon="✝" title="Ceremonia Religiosa" {...invitationData.ceremony} />
           </Reveal>
-          <Reveal>
+          <Reveal className="reveal--right" delay={140}>
             <LocationCard icon="✦" title="Recepción" {...invitationData.reception} />
           </Reveal>
         </div>
@@ -298,30 +332,11 @@ export default function Home() {
         <Reveal><SectionHeading kicker="Cada momento cuenta" title="Itinerario" light /></Reveal>
         <div className="timeline">
           {invitationData.itinerary.map((event, index) => (
-            <Reveal className="timeline__event" key={event.title}>
+            <Reveal className="timeline__event" delay={index * 90} key={event.title}>
               <span className="timeline__time">{event.time}</span>
               <span className="timeline__dot" aria-hidden="true">{event.icon}</span>
               <div><small>0{index + 1}</small><h3>{event.title}</h3></div>
             </Reveal>
-          ))}
-        </div>
-      </section>
-
-      <section className="gallery-section section-pad">
-        <Reveal><SectionHeading kicker="Momentos que atesoro" title="Galería" /></Reveal>
-        <p className="gallery-hint">Desliza y toca una fotografía para verla completa.</p>
-        <div className="gallery-track">
-          {invitationData.photos.gallery.map((photo, index) => (
-            <button
-              className="gallery-card"
-              type="button"
-              key={photo}
-              onClick={() => setActivePhoto(index)}
-              aria-label={`Ampliar fotografía ${index + 1}`}
-            >
-              <Photo src={photo} alt={`Melany Deniss, fotografía ${index + 1}`} />
-              <span>0{index + 1}</span>
-            </button>
           ))}
         </div>
       </section>
@@ -338,6 +353,63 @@ export default function Home() {
           <p className="red-note"><span aria-hidden="true" /> El color rojo está reservado para la quinceañera.</p>
         </Reveal>
       </section>
+
+      {organizerMode && (
+        <section className="organizer-section section-pad" id="generador">
+          <Reveal>
+            <SectionHeading kicker="Uso del organizador" title="Enviar invitación" />
+            <p className="section-intro">Escribe los datos del invitado para crear su pase y enviarlo directamente por WhatsApp.</p>
+            <form className="invite-generator" onSubmit={generateInvitation}>
+              <label>
+                Nombre o familia
+                <input
+                  type="text"
+                  value={inviteForm.name}
+                  onChange={(event) => setInviteForm({ ...inviteForm, name: event.target.value })}
+                  placeholder="Familia Castro"
+                  required
+                />
+              </label>
+              <label>
+                Número de lugares
+                <input
+                  type="number"
+                  min="1"
+                  max="20"
+                  value={inviteForm.seats}
+                  onChange={(event) => setInviteForm({ ...inviteForm, seats: Math.max(1, Number(event.target.value)) })}
+                  required
+                />
+              </label>
+              <label>
+                WhatsApp del invitado
+                <input
+                  type="tel"
+                  value={inviteForm.phone}
+                  onChange={(event) => setInviteForm({ ...inviteForm, phone: event.target.value })}
+                  placeholder="Incluye código de país"
+                  required
+                />
+              </label>
+              <button className="primary-button primary-button--wine" type="submit">Crear pase personalizado</button>
+            </form>
+
+            {generatedLink && (
+              <div className="generated-invite" aria-live="polite">
+                <div>
+                  <span>Enlace listo para {inviteForm.name}</span>
+                  <strong>{inviteForm.seats} {inviteForm.seats === 1 ? 'lugar' : 'lugares'}</strong>
+                </div>
+                <p>{generatedLink}</p>
+                <div className="generated-invite__actions">
+                  <button className="outline-button" type="button" onClick={copyGeneratedLink}>{copied ? 'Enlace copiado' : 'Copiar enlace'}</button>
+                  <a className="primary-button primary-button--wine" href={sendPersonalizedInvitation()} target="_blank" rel="noreferrer">Enviar por WhatsApp ↗</a>
+                </div>
+              </div>
+            )}
+          </Reveal>
+        </section>
+      )}
 
       <section className="pass-section section-pad">
         <Reveal>
@@ -361,16 +433,18 @@ export default function Home() {
         <Reveal><SectionHeading kicker="Tu presencia es lo más importante" title="Mesa de Regalos" /></Reveal>
         <p className="section-intro">Si deseas tener un detalle conmigo, encontrarás aquí las opciones disponibles.</p>
         <div className="gift-grid">
-          {invitationData.gifts.map((gift) => (
-            gift.link === '#' ? (
-              <button className="gift-card" type="button" disabled key={gift.name}>
-                <span aria-hidden="true">◇</span><strong>{gift.name}</strong><small>{gift.detail} · Próximamente</small>
-              </button>
-            ) : (
-              <a className="gift-card" href={gift.link} target="_blank" rel="noreferrer" key={gift.name}>
-                <span aria-hidden="true">◇</span><strong>{gift.name}</strong><small>{gift.detail}</small>
-              </a>
-            )
+          {invitationData.gifts.map((gift, index) => (
+            <Reveal delay={index * 100} key={gift.name}>
+              {gift.link === '#' ? (
+                <button className="gift-card" type="button" disabled>
+                  <span aria-hidden="true">◇</span><strong>{gift.name}</strong><small>{gift.detail} · Próximamente</small>
+                </button>
+              ) : (
+                <a className="gift-card" href={gift.link} target="_blank" rel="noreferrer">
+                  <span aria-hidden="true">◇</span><strong>{gift.name}</strong><small>{gift.detail}</small>
+                </a>
+              )}
+            </Reveal>
           ))}
         </div>
       </section>
@@ -409,15 +483,6 @@ export default function Home() {
         </>
       )}
 
-      {activePhoto !== null && (
-        <div className="lightbox" role="dialog" aria-modal="true" aria-label={`Fotografía ${activePhoto + 1}`} onClick={closePhoto}>
-          <button className="lightbox__close" type="button" onClick={() => setActivePhoto(null)} aria-label="Cerrar fotografía">×</button>
-          <button className="lightbox__nav lightbox__nav--prev" type="button" aria-label="Fotografía anterior" onClick={() => setActivePhoto((activePhoto - 1 + invitationData.photos.gallery.length) % invitationData.photos.gallery.length)}>‹</button>
-          <Photo src={invitationData.photos.gallery[activePhoto]} alt={`Melany Deniss, fotografía ampliada ${activePhoto + 1}`} />
-          <button className="lightbox__nav lightbox__nav--next" type="button" aria-label="Fotografía siguiente" onClick={() => setActivePhoto((activePhoto + 1) % invitationData.photos.gallery.length)}>›</button>
-          <p>{activePhoto + 1} / {invitationData.photos.gallery.length}</p>
-        </div>
-      )}
     </main>
   );
 }

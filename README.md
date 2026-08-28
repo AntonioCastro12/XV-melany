@@ -12,6 +12,20 @@ El pase personalizado acepta parámetros de URL:
 
 `?invitado=Familia%20Castro&lugares=4`
 
+## Generador para el organizador
+
+Abre la invitación agregando `?organizador=1` al dominio para mostrar el panel privado de envío. Ahí puedes escribir el nombre o familia, el número de lugares y el WhatsApp del invitado. El panel genera el enlace personalizado y abre WhatsApp con el mensaje y los pases incluidos.
+
+Ejemplo local:
+
+`http://localhost:3000/?organizador=1`
+
+Este panel no aparece en los enlaces normales enviados a los invitados.
+
+## Música
+
+La invitación incluye `public/music/melany-instrumental.wav`, una pieza instrumental original que inicia al tocar **Abrir invitación**. Puede reemplazarse por otra canción conservando la ruta configurada en `app/invitation-data.ts`.
+
 ## Desarrollo local
 
 ```bash
