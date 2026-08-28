@@ -398,7 +398,7 @@ export default function Home() {
         <section className="organizer-section section-pad" id="generador">
           <Reveal>
             <SectionHeading kicker="Uso del organizador" title="Enviar invitación" />
-            <p className="section-intro">Escribe los datos de cada familia para crear su pase personalizado y enviarlo directamente por WhatsApp.</p>
+            <p className="section-intro">Escribe los datos de cada familia para crear su pase personalizado y enviarlo directamente por diferentes medios.</p>
             <form className="invite-generator" onSubmit={generateInvitation}>
               <label>
                 Apellido de la familia (opcional)
