@@ -2,7 +2,7 @@
 export const EVENT_YEAR = 2026;
 
 // Cambia aquí el teléfono, incluyendo código de país y sin signos.
-export const WHATSAPP_NUMBER = 'XXXXXXXXXX';
+export const WHATSAPP_NUMBER = '524621255121';
 
 export const invitationData = {
   celebrant: 'Melany Deniss',
