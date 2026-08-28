@@ -406,7 +406,7 @@ export default function Home() {
                   type="text"
                   value={inviteForm.name}
                   onChange={(event) => setInviteForm({ ...inviteForm, name: event.target.value })}
-                  placeholder="Déjalo vacío para enviar sin nombre"
+                  placeholder="Este campo es opcional"
                 />
               </label>
               <label>
