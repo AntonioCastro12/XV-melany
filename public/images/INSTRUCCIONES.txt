@@ -1,0 +1,11 @@
+Coloca en esta carpeta las fotografías finales con estos nombres:
+
+melany-principal.jpg
+melany-1.jpg
+melany-2.jpg
+melany-3.jpg
+melany-4.jpg
+melany-5.jpg
+melany-final.jpg
+
+La invitación muestra un monograma elegante mientras una fotografía no exista.
