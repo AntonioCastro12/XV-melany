@@ -437,7 +437,7 @@ export default function Home() {
                   type="tel"
                   value={inviteForm.phone}
                   onChange={(event) => setInviteForm({ ...inviteForm, phone: event.target.value })}
-                  placeholder="Vacío si enviarás por Messenger"
+                  placeholder="Vacío si la compartitas por otro medio"
                 />
               </label>
               <button className="primary-button primary-button--wine" type="submit">Crear pase personalizado</button>
