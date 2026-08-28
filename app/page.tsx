@@ -452,7 +452,7 @@ export default function Home() {
                 <p>{generatedLink}</p>
                 <div className="generated-invite__actions">
                   <button className="outline-button" type="button" onClick={copyGeneratedLink}>{copied ? 'Enlace copiado' : 'Copiar enlace'}</button>
-                  <button className="outline-button" type="button" onClick={shareGeneratedLink}>Compartir / Messenger ↗</button>
+                  <button className="outline-button" type="button" onClick={shareGeneratedLink}>Compartir ↗</button>
                   {normalizeWhatsAppNumber(inviteForm.phone) && (
                     <a className="primary-button primary-button--wine" href={sendPersonalizedInvitation()} target="_blank" rel="noreferrer">Enviar por WhatsApp ↗</a>
                   )}
