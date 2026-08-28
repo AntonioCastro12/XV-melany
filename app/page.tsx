@@ -32,7 +32,7 @@ function whatsappUrl() {
   const message = encodeURIComponent(
     'Hola, confirmo mi asistencia a los XV años de Melany Deniss.',
   );
-  return `https://wa.me/${number}?text=${message}`;
+  return number ? `https://wa.me/${number}?text=${message}` : `https://wa.me/?text=${message}`;
 }
 
 function Reveal({ children, className = '', delay = 0 }: { children: ReactNode; className?: string; delay?: number }) {
@@ -145,6 +145,7 @@ export default function Home() {
   const [inviteForm, setInviteForm] = useState({ name: '', seats: 2, table: 1, phone: '' });
   const [generatedLink, setGeneratedLink] = useState('');
   const [copied, setCopied] = useState(false);
+  const [rsvpForm, setRsvpForm] = useState({ name: '', message: '' });
   const [scrollProgress, setScrollProgress] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
   const contentRef = useRef<HTMLElement>(null);
@@ -153,11 +154,13 @@ export default function Home() {
     const params = new URLSearchParams(window.location.search);
     const parsedSeats = Number.parseInt(params.get('lugares') ?? '', 10);
     const parsedTable = Number.parseInt(params.get('mesa') ?? '', 10);
+    const familyName = formatFamilyName(params.get('familia') || params.get('invitado') || '');
     setGuest({
-      name: formatFamilyName(params.get('familia') || params.get('invitado') || ''),
+      name: familyName,
       seats: Number.isFinite(parsedSeats) && parsedSeats > 0 ? parsedSeats : 4,
       table: Number.isFinite(parsedTable) && parsedTable > 0 ? parsedTable : 1,
     });
+    setRsvpForm((current) => ({ ...current, name: familyName === 'Familia Ejemplo' ? '' : familyName }));
     setOrganizerMode(params.get('organizador') === '1');
   }, []);
 
@@ -237,6 +240,18 @@ export default function Home() {
       `Hola ${family}, con mucha alegría les invitamos a los XV años de Melany Deniss. Su pase es para ${seatsLabel}, mesa ${inviteForm.table}. Abran su invitación personalizada aquí: ${generatedLink}`,
     );
     return `https://wa.me/${phone}?text=${message}`;
+  }
+
+  function confirmAttendance(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const number = WHATSAPP_NUMBER.replace(/\D/g, '');
+    const sender = rsvpForm.name.trim() || guest.name;
+    const words = rsvpForm.message.trim();
+    const details = `${guest.seats} ${guest.seats === 1 ? 'persona' : 'personas'}, mesa ${guest.table}`;
+    const message = encodeURIComponent(
+      `Hola, somos ${sender} y confirmamos nuestra asistencia a los XV años de Melany Deniss. Nuestro pase es para ${details}.${words ? `\n\nUnas palabras para Melany:\n${words}` : ''}`,
+    );
+    window.open(number ? `https://wa.me/${number}?text=${message}` : `https://wa.me/?text=${message}`, '_blank', 'noopener,noreferrer');
   }
 
   return (
@@ -478,10 +493,32 @@ export default function Home() {
         <Reveal className="rsvp-card">
           <p className="eyebrow">Reserva la fecha</p>
           <h2>Confirma tu asistencia</h2>
-          <p>Tu presencia hará este día aún más especial.</p>
-          <a className="primary-button primary-button--wine" href={whatsappUrl()} target="_blank" rel="noreferrer">
-            Confirmar por WhatsApp <span aria-hidden="true">↗</span>
-          </a>
+          <p>Tu presencia hará este día aún más especial. Si deseas, déjale unas palabras a Melany.</p>
+          <form className="rsvp-form" onSubmit={confirmAttendance}>
+            <label>
+              Nombre o familia
+              <input
+                type="text"
+                value={rsvpForm.name}
+                onChange={(event) => setRsvpForm({ ...rsvpForm, name: event.target.value })}
+                placeholder="Familia Castro"
+                required
+              />
+            </label>
+            <label>
+              Unas palabras para la quinceañera
+              <textarea
+                value={rsvpForm.message}
+                onChange={(event) => setRsvpForm({ ...rsvpForm, message: event.target.value })}
+                placeholder="Melany, deseamos que esta nueva etapa esté llena de alegría..."
+                maxLength={500}
+                rows={4}
+              />
+            </label>
+            <button className="primary-button" type="submit">
+              Confirmar y enviar por WhatsApp <span aria-hidden="true">↗</span>
+            </button>
+          </form>
         </Reveal>
       </section>
 

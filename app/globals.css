@@ -402,6 +402,12 @@ img { display: block; max-width: 100%; }
 
 .rsvp-section { background: var(--ivory); }
 .rsvp-card { max-width: 58rem; margin: auto; padding: clamp(3rem, 9vw, 5rem) 1.4rem; color: var(--ivory); text-align: center; background: radial-gradient(circle at 50% 0, var(--wine-soft), var(--wine) 45%, var(--wine-deep) 100%); box-shadow: 0 28px 70px rgba(143, 0, 0, .22); }
+.rsvp-form { display: grid; gap: 1rem; width: min(100%, 38rem); margin: 2rem auto 0; text-align: left; }
+.rsvp-form label { display: grid; gap: .55rem; color: var(--gold-light); font-family: var(--font-sans); font-size: .68rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.rsvp-form input, .rsvp-form textarea { width: 100%; padding: .9rem 1rem; border: 1px solid rgba(212, 175, 55, .7); border-radius: 0; outline: none; background: rgba(255, 250, 241, .96); color: var(--ink); font: 1rem/1.5 var(--font-serif); resize: vertical; text-transform: none; transition: border-color .2s ease, box-shadow .2s ease; }
+.rsvp-form input { min-height: 3.3rem; }
+.rsvp-form input:focus, .rsvp-form textarea:focus { border-color: var(--gold-light); box-shadow: 0 0 0 3px rgba(212, 175, 55, .18); }
+.rsvp-form .primary-button { justify-self: center; margin-top: .4rem; }
 .rsvp-card .eyebrow { color: var(--gold-light); }
 .rsvp-card h2 { margin: 0; font-size: clamp(2.5rem, 9vw, 4.5rem); font-weight: 400; line-height: 1.05; }
 .rsvp-card p:not(.eyebrow) { margin: 1.2rem 0 2.2rem; font-size: 1.05rem; }
