@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
-const siteUrl = process.env.DEPLOY_PRIME_URL || process.env.URL || 'http://localhost:3000';
+const siteUrl = process.env.URL || process.env.DEPLOY_PRIME_URL || 'http://localhost:3000';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -14,9 +14,9 @@ export const metadata: Metadata = {
     locale: 'es_MX',
     images: [
       {
-        url: '/og.png',
-        width: 1731,
-        height: 909,
+        url: '/og.jpg',
+        width: 1200,
+        height: 675,
         alt: 'Mis XV Años de Melany Deniss — 24 de octubre',
       },
     ],
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Mis XV Años | Melany Deniss',
     description: 'Acompáñame a celebrar mis XV años este 24 de octubre.',
-    images: ['/og.png'],
+    images: ['/og.jpg'],
   },
 };
 

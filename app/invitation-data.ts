@@ -47,12 +47,6 @@ export const invitationData = {
     { time: '7:00 PM', title: 'Sonido', icon: '♪' },
     { time: '10:00 PM', title: 'Banda', icon: '♬' },
   ],
-  music: '/music/melany-instrumental.wav', // Puedes sustituir este archivo por otra canción.
-  gifts: [
-    // Sustituye # por el enlace real de cada opción cuando esté disponible.
-    { name: 'Liverpool', detail: 'Mesa de regalos', link: '#' },
-    { name: 'Amazon', detail: 'Lista de deseos', link: '#' },
-    { name: 'Regalo en efectivo', detail: 'Opción disponible', link: '#' },
-  ],
+  music: '/music/melany-instrumental.mp3', // Puedes sustituir este archivo por otra canción.
 };
 

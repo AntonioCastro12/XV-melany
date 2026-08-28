@@ -142,10 +142,9 @@ export default function Home() {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [guest, setGuest] = useState({ name: 'Familia Ejemplo', seats: 4, table: 1 });
   const [organizerMode, setOrganizerMode] = useState(false);
-  const [inviteForm, setInviteForm] = useState({ name: '', seats: 2, table: 1, phone: '' });
+  const [inviteForm, setInviteForm] = useState({ name: '', seats: '2', table: '1', phone: '' });
   const [generatedLink, setGeneratedLink] = useState('');
   const [copied, setCopied] = useState(false);
-  const [rsvpForm, setRsvpForm] = useState({ name: '', message: '' });
   const [scrollProgress, setScrollProgress] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
   const contentRef = useRef<HTMLElement>(null);
@@ -160,7 +159,6 @@ export default function Home() {
       seats: Number.isFinite(parsedSeats) && parsedSeats > 0 ? parsedSeats : 4,
       table: Number.isFinite(parsedTable) && parsedTable > 0 ? parsedTable : 1,
     });
-    setRsvpForm((current) => ({ ...current, name: familyName === 'Familia Ejemplo' ? '' : familyName }));
     setOrganizerMode(params.get('organizador') === '1');
   }, []);
 
@@ -214,8 +212,8 @@ export default function Home() {
   function generateInvitation(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const family = formatFamilyName(inviteForm.name);
-    const seats = Math.max(1, Math.trunc(inviteForm.seats));
-    const table = Math.max(1, Math.trunc(inviteForm.table));
+    const seats = Math.max(1, Number.parseInt(inviteForm.seats, 10) || 1);
+    const table = Math.max(1, Number.parseInt(inviteForm.table, 10) || 1);
     if (!inviteForm.name.trim() || !normalizeWhatsAppNumber(inviteForm.phone)) return;
     const url = new URL(window.location.origin + window.location.pathname);
     url.searchParams.set('familia', family);
@@ -235,23 +233,22 @@ export default function Home() {
     if (!generatedLink) return '#';
     const phone = normalizeWhatsAppNumber(inviteForm.phone);
     const family = formatFamilyName(inviteForm.name);
-    const seatsLabel = inviteForm.seats === 1 ? '1 persona' : `${inviteForm.seats} personas`;
+    const seats = Math.max(1, Number.parseInt(inviteForm.seats, 10) || 1);
+    const table = Math.max(1, Number.parseInt(inviteForm.table, 10) || 1);
+    const seatsLabel = seats === 1 ? '1 persona' : `${seats} personas`;
     const message = encodeURIComponent(
-      `Hola ${family}, con mucha alegría les invitamos a los XV años de Melany Deniss. Su pase es para ${seatsLabel}, mesa ${inviteForm.table}. Abran su invitación personalizada aquí: ${generatedLink}`,
+      `Hola ${family}, con mucha alegría les invitamos a los XV años de Melany Deniss. Su pase es para ${seatsLabel}, mesa ${table}. Abran su invitación personalizada aquí: ${generatedLink}`,
     );
     return `https://wa.me/${phone}?text=${message}`;
   }
 
-  function confirmAttendance(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  function personalizedConfirmationUrl() {
     const number = WHATSAPP_NUMBER.replace(/\D/g, '');
-    const sender = rsvpForm.name.trim() || guest.name;
-    const words = rsvpForm.message.trim();
     const details = `${guest.seats} ${guest.seats === 1 ? 'persona' : 'personas'}, mesa ${guest.table}`;
     const message = encodeURIComponent(
-      `Hola, somos ${sender} y confirmamos nuestra asistencia a los XV años de Melany Deniss. Nuestro pase es para ${details}.${words ? `\n\nUnas palabras para Melany:\n${words}` : ''}`,
+      `Hola, somos ${guest.name} y confirmamos nuestra asistencia a los XV años de Melany Deniss. Nuestro pase es para ${details}.`,
     );
-    window.open(number ? `https://wa.me/${number}?text=${message}` : `https://wa.me/?text=${message}`, '_blank', 'noopener,noreferrer');
+    return number ? `https://wa.me/${number}?text=${message}` : `https://wa.me/?text=${message}`;
   }
 
   return (
@@ -400,7 +397,7 @@ export default function Home() {
                   min="1"
                   max="20"
                   value={inviteForm.seats}
-                  onChange={(event) => setInviteForm({ ...inviteForm, seats: Math.max(1, Number(event.target.value)) })}
+                  onChange={(event) => setInviteForm({ ...inviteForm, seats: event.target.value })}
                   required
                 />
               </label>
@@ -411,7 +408,7 @@ export default function Home() {
                   min="1"
                   max="200"
                   value={inviteForm.table}
-                  onChange={(event) => setInviteForm({ ...inviteForm, table: Math.max(1, Number(event.target.value)) })}
+                  onChange={(event) => setInviteForm({ ...inviteForm, table: event.target.value })}
                   required
                 />
               </label>
@@ -432,7 +429,7 @@ export default function Home() {
               <div className="generated-invite" aria-live="polite">
                 <div>
                   <span>Enlace listo para {formatFamilyName(inviteForm.name)}</span>
-                  <strong>{inviteForm.seats} {inviteForm.seats === 1 ? 'persona' : 'personas'} · Mesa {inviteForm.table}</strong>
+                  <strong>{inviteForm.seats || '1'} {Number(inviteForm.seats) === 1 ? 'persona' : 'personas'} · Mesa {inviteForm.table || '1'}</strong>
                 </div>
                 <p>{generatedLink}</p>
                 <div className="generated-invite__actions">
@@ -470,55 +467,24 @@ export default function Home() {
       </section>
 
       <section className="gifts-section section-pad">
-        <Reveal><SectionHeading kicker="Tu presencia es lo más importante" title="Mesa de Regalos" /></Reveal>
-        <p className="section-intro">Si deseas tener un detalle conmigo, encontrarás aquí las opciones disponibles.</p>
-        <div className="gift-grid">
-          {invitationData.gifts.map((gift, index) => (
-            <Reveal delay={index * 100} key={gift.name}>
-              {gift.link === '#' ? (
-                <button className="gift-card" type="button" disabled>
-                  <span aria-hidden="true">◇</span><strong>{gift.name}</strong><small>{gift.detail} · Próximamente</small>
-                </button>
-              ) : (
-                <a className="gift-card" href={gift.link} target="_blank" rel="noreferrer">
-                  <span aria-hidden="true">◇</span><strong>{gift.name}</strong><small>{gift.detail}</small>
-                </a>
-              )}
-            </Reveal>
-          ))}
-        </div>
+        <Reveal>
+          <SectionHeading kicker="Un detalle especial" title="Sugerencia de regalo" />
+          <div className="gift-suggestion">
+            <span aria-hidden="true">✦</span>
+            <p>Tu presencia es mi mayor alegría.</p>
+            <p>Si deseas obsequiarme algo, te agradecería que fuera en efectivo y así poder elegir mi regalo ideal.</p>
+          </div>
+        </Reveal>
       </section>
 
       <section className="rsvp-section section-pad">
         <Reveal className="rsvp-card">
           <p className="eyebrow">Reserva la fecha</p>
           <h2>Confirma tu asistencia</h2>
-          <p>Tu presencia hará este día aún más especial. Si deseas, déjale unas palabras a Melany.</p>
-          <form className="rsvp-form" onSubmit={confirmAttendance}>
-            <label>
-              Nombre o familia
-              <input
-                type="text"
-                value={rsvpForm.name}
-                onChange={(event) => setRsvpForm({ ...rsvpForm, name: event.target.value })}
-                placeholder="Familia Castro"
-                required
-              />
-            </label>
-            <label>
-              Unas palabras para la quinceañera
-              <textarea
-                value={rsvpForm.message}
-                onChange={(event) => setRsvpForm({ ...rsvpForm, message: event.target.value })}
-                placeholder="Melany, deseamos que esta nueva etapa esté llena de alegría..."
-                maxLength={500}
-                rows={4}
-              />
-            </label>
-            <button className="primary-button" type="submit">
-              Confirmar y enviar por WhatsApp <span aria-hidden="true">↗</span>
-            </button>
-          </form>
+          <p>Tu presencia hará este día aún más especial.</p>
+          <a className="primary-button" href={personalizedConfirmationUrl()} target="_blank" rel="noreferrer">
+            Confirmar por WhatsApp <span aria-hidden="true">↗</span>
+          </a>
         </Reveal>
       </section>
 
