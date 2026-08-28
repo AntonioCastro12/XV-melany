@@ -57,6 +57,17 @@ function Reveal({ children, className = '', delay = 0 }: { children: ReactNode; 
   return <div ref={ref} className={`reveal ${className}`} style={{ '--reveal-delay': `${delay}ms` } as CSSProperties}>{children}</div>;
 }
 
+function formatFamilyName(value: string) {
+  const name = value.trim();
+  if (!name) return 'Familia Ejemplo';
+  return /^familia\b/i.test(name) ? name : `Familia ${name}`;
+}
+
+function normalizeWhatsAppNumber(value: string) {
+  const digits = value.replace(/\D/g, '');
+  return digits.length === 10 ? `52${digits}` : digits;
+}
+
 function SectionHeading({ kicker, title, light = false }: { kicker: string; title: string; light?: boolean }) {
   return (
     <header className={`section-heading ${light ? 'section-heading--light' : ''}`}>
@@ -129,9 +140,9 @@ export default function Home() {
   const [opened, setOpened] = useState(false);
   const [musicPlaying, setMusicPlaying] = useState(false);
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-  const [guest, setGuest] = useState({ name: 'Familia Ejemplo', seats: 4 });
+  const [guest, setGuest] = useState({ name: 'Familia Ejemplo', seats: 4, table: 1 });
   const [organizerMode, setOrganizerMode] = useState(false);
-  const [inviteForm, setInviteForm] = useState({ name: '', seats: 2, phone: '' });
+  const [inviteForm, setInviteForm] = useState({ name: '', seats: 2, table: 1, phone: '' });
   const [generatedLink, setGeneratedLink] = useState('');
   const [copied, setCopied] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -141,9 +152,11 @@ export default function Home() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const parsedSeats = Number.parseInt(params.get('lugares') ?? '', 10);
+    const parsedTable = Number.parseInt(params.get('mesa') ?? '', 10);
     setGuest({
-      name: params.get('invitado')?.trim() || 'Familia Ejemplo',
+      name: formatFamilyName(params.get('familia') || params.get('invitado') || ''),
       seats: Number.isFinite(parsedSeats) && parsedSeats > 0 ? parsedSeats : 4,
+      table: Number.isFinite(parsedTable) && parsedTable > 0 ? parsedTable : 1,
     });
     setOrganizerMode(params.get('organizador') === '1');
   }, []);
@@ -197,11 +210,14 @@ export default function Home() {
 
   function generateInvitation(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const name = inviteForm.name.trim();
-    if (!name) return;
+    const family = formatFamilyName(inviteForm.name);
+    const seats = Math.max(1, Math.trunc(inviteForm.seats));
+    const table = Math.max(1, Math.trunc(inviteForm.table));
+    if (!inviteForm.name.trim() || !normalizeWhatsAppNumber(inviteForm.phone)) return;
     const url = new URL(window.location.origin + window.location.pathname);
-    url.searchParams.set('invitado', name);
-    url.searchParams.set('lugares', String(Math.max(1, inviteForm.seats)));
+    url.searchParams.set('familia', family);
+    url.searchParams.set('lugares', String(seats));
+    url.searchParams.set('mesa', String(table));
     setGeneratedLink(url.toString());
     setCopied(false);
   }
@@ -214,10 +230,11 @@ export default function Home() {
 
   function sendPersonalizedInvitation() {
     if (!generatedLink) return '#';
-    const phone = inviteForm.phone.replace(/\D/g, '');
-    const seatsLabel = inviteForm.seats === 1 ? '1 lugar' : `${inviteForm.seats} lugares`;
+    const phone = normalizeWhatsAppNumber(inviteForm.phone);
+    const family = formatFamilyName(inviteForm.name);
+    const seatsLabel = inviteForm.seats === 1 ? '1 persona' : `${inviteForm.seats} personas`;
     const message = encodeURIComponent(
-      `Hola ${inviteForm.name.trim()}, con mucha alegría te invitamos a los XV años de Melany Deniss. Tu pase es para ${seatsLabel}. Abre tu invitación personalizada aquí: ${generatedLink}`,
+      `Hola ${family}, con mucha alegría les invitamos a los XV años de Melany Deniss. Su pase es para ${seatsLabel}, mesa ${inviteForm.table}. Abran su invitación personalizada aquí: ${generatedLink}`,
     );
     return `https://wa.me/${phone}?text=${message}`;
   }
@@ -349,20 +366,20 @@ export default function Home() {
         <section className="organizer-section section-pad" id="generador">
           <Reveal>
             <SectionHeading kicker="Uso del organizador" title="Enviar invitación" />
-            <p className="section-intro">Escribe los datos del invitado para crear su pase y enviarlo directamente por WhatsApp.</p>
+            <p className="section-intro">Escribe los datos de cada familia para crear su pase personalizado y enviarlo directamente por WhatsApp.</p>
             <form className="invite-generator" onSubmit={generateInvitation}>
               <label>
-                Nombre o familia
+                Apellido de la familia
                 <input
                   type="text"
                   value={inviteForm.name}
                   onChange={(event) => setInviteForm({ ...inviteForm, name: event.target.value })}
-                  placeholder="Familia Castro"
+                  placeholder="Castro"
                   required
                 />
               </label>
               <label>
-                Número de lugares
+                Número de pases
                 <input
                   type="number"
                   min="1"
@@ -373,12 +390,23 @@ export default function Home() {
                 />
               </label>
               <label>
-                WhatsApp del invitado
+                Número de mesa
+                <input
+                  type="number"
+                  min="1"
+                  max="200"
+                  value={inviteForm.table}
+                  onChange={(event) => setInviteForm({ ...inviteForm, table: Math.max(1, Number(event.target.value)) })}
+                  required
+                />
+              </label>
+              <label>
+                Número de teléfono / WhatsApp
                 <input
                   type="tel"
                   value={inviteForm.phone}
                   onChange={(event) => setInviteForm({ ...inviteForm, phone: event.target.value })}
-                  placeholder="Incluye código de país"
+                  placeholder="10 dígitos o con código de país"
                   required
                 />
               </label>
@@ -388,8 +416,8 @@ export default function Home() {
             {generatedLink && (
               <div className="generated-invite" aria-live="polite">
                 <div>
-                  <span>Enlace listo para {inviteForm.name}</span>
-                  <strong>{inviteForm.seats} {inviteForm.seats === 1 ? 'lugar' : 'lugares'}</strong>
+                  <span>Enlace listo para {formatFamilyName(inviteForm.name)}</span>
+                  <strong>{inviteForm.seats} {inviteForm.seats === 1 ? 'persona' : 'personas'} · Mesa {inviteForm.table}</strong>
                 </div>
                 <p>{generatedLink}</p>
                 <div className="generated-invite__actions">
@@ -409,12 +437,18 @@ export default function Home() {
             <div className="guest-pass__main">
               <p>Pase para</p>
               <h3>{guest.name}</h3>
+              <div className="guest-pass__details">
+                <strong>{guest.seats} {guest.seats === 1 ? 'persona' : 'personas'}</strong>
+                <span aria-hidden="true">·</span>
+                <strong>Mesa {guest.table}</strong>
+              </div>
               <span>XV · MD · {invitationData.eventDate.year}</span>
             </div>
             <div className="guest-pass__stub">
-              <span>Lugares</span>
+              <span>Pases</span>
               <strong>{guest.seats}</strong>
-              <small>{guest.seats === 1 ? 'lugar' : 'lugares'}</small>
+              <small>{guest.seats === 1 ? 'persona' : 'personas'}</small>
+              <span className="guest-pass__table">Mesa {guest.table}</span>
             </div>
           </article>
         </Reveal>

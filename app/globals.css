@@ -380,6 +380,7 @@ img { display: block; max-width: 100%; }
 .guest-pass__main { position: relative; padding: 2.2rem 1.5rem; text-align: center; background: radial-gradient(circle at 0 0, rgba(212, 175, 55, .15), transparent 35%); }
 .guest-pass__main p { margin: 0 0 .55rem; color: var(--wine); font-family: var(--font-sans); font-size: .65rem; font-weight: 700; letter-spacing: .17em; text-transform: uppercase; }
 .guest-pass__main h3 { margin: 0; color: var(--wine-deep); font-size: clamp(1.8rem, 7vw, 2.7rem); font-weight: 400; line-height: 1.15; }
+.guest-pass__details { display: flex; flex-wrap: wrap; justify-content: center; gap: .45rem; margin-top: 1rem; color: var(--wine-deep); font-family: var(--font-sans); font-size: .76rem; letter-spacing: .08em; text-transform: uppercase; }
 .guest-pass__main > span { display: block; margin-top: 1.5rem; color: var(--muted); font-family: var(--font-sans); font-size: .58rem; letter-spacing: .2em; }
 .guest-pass__stub { position: relative; display: grid; place-content: center; justify-items: center; min-height: 9.5rem; border-top: 1px dashed var(--gold); background: #eadcc7; }
 .guest-pass__stub::before, .guest-pass__stub::after { content: ''; position: absolute; top: -.75rem; width: 1.5rem; height: 1.5rem; border-radius: 50%; background: var(--wine-deep); }
@@ -387,6 +388,7 @@ img { display: block; max-width: 100%; }
 .guest-pass__stub::after { right: -.75rem; }
 .guest-pass__stub span, .guest-pass__stub small { font-family: var(--font-sans); font-size: .58rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
 .guest-pass__stub strong { color: var(--wine); font-size: 3.5rem; font-weight: 400; line-height: 1; }
+.guest-pass__table { margin-top: .7rem; padding-top: .65rem; border-top: 1px solid rgba(212, 175, 55, .65); color: var(--wine-deep); }
 
 .gifts-section { background: var(--cream); }
 .section-intro { max-width: 35rem; margin: -2.4rem auto 2.5rem; color: var(--muted); line-height: 1.65; text-align: center; }
@@ -507,7 +509,7 @@ img { display: block; max-width: 100%; }
   .gift-grid { grid-template-columns: repeat(3, 1fr); }
   .gift-card { grid-template-columns: 1fr; justify-items: center; min-height: 10rem; text-align: center; }
   .gift-card > span { grid-row: auto; }
-  .invite-generator { grid-template-columns: 1.4fr .65fr 1fr; align-items: end; }
+  .invite-generator { grid-template-columns: 1.35fr .65fr .65fr 1fr; align-items: end; }
   .invite-generator .primary-button { grid-column: 1 / -1; width: auto; justify-self: center; }
   .generated-invite__actions { flex-direction: row; justify-content: flex-end; }
   .guest-pass { grid-template-columns: 1fr 10rem; }
